@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#E7CCCC"
+    tools:context=".MainActivity">
+
+    <view
+        android:id="@+id/view"
+        class="com.example.paint.Paintview"
+        android:layout_width="371dp"
+        android:layout_height="211dp" />
+<!--        app:layout_constraintBottom_toTopOf="@+id/button"-->
+
+
+    <!--        <com.example.paint.Paintview-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="500dp"-->
+    <!--            app:layout_constraintBottom_toTopOf="@+id/button"-->
+    <!--            app:layout_constraintEnd_toEndOf="parent"-->
+    <!--            app:layout_constraintStart_toStartOf="parent"-->
+    <!--            app:layout_constraintTop_toTopOf="parent" />-->
+
+<!--    <ImageView-->
+<!--        android:id="@+id/photoEditorView"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:background="#2B2B2B"-->
+<!--        android:src="@drawable/random" />-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent" />-->
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|center_horizontal"
+        android:layout_marginBottom="32dp"
+        android:text="Erase"
+        app:backgroundTint="#716666" />
+    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/photoEditorView" />-->
+
+
+</LinearLayout>
