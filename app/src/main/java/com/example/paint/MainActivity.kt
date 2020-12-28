@@ -1,9 +1,7 @@
 package com.example.paint
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Path
+import android.graphics.*
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
@@ -12,42 +10,42 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
-import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-class MainActivity : AppCompatActivity() , OnItemSelectedListener {
+class MainActivity : AppCompatActivity(), OnItemSelectedListener {
 
-
-    lateinit var paintview : Paintview
+    lateinit var paintview: Painter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        paintview = Paintview(this)
+        paintview = Painter(this)
+
         paintview.setBackgroundResource(R.drawable.random)
+
         paintview.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, 1000)
+
         layout.addView(paintview)
 
         val adapter = ArrayAdapter.createFromResource(
             this,
             R.array.COLORS, android.R.layout.simple_spinner_item
         )
-        val Brushadapter = ArrayAdapter.createFromResource(
+        val brushadapter = ArrayAdapter.createFromResource(
             this,
             R.array.BrushSize, android.R.layout.simple_spinner_item
         )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        Brushadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        brushadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         Color_Spinner.adapter = adapter
-        Brush_Spinner.adapter = Brushadapter
+        Brush_Spinner.adapter = brushadapter
         Color_Spinner.onItemSelectedListener = this
         Brush_Spinner.onItemSelectedListener = this
 
         button.setOnClickListener {
             paintview.invalidate()
-            paintview.path.reset()
+            paintview.startNew()
         }
 
     }
@@ -55,67 +53,86 @@ class MainActivity : AppCompatActivity() , OnItemSelectedListener {
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
 
         if (parent?.id == R.id.Color_Spinner) {
-            val text = parent.getItemAtPosition(position).toString()
-            if (text == "white") {
-                paintview.brush.color = ContextCompat.getColor(this, R.color.white)
-            } else if (text == "Cyan") {
-                paintview.brush.color = ContextCompat.getColor(this, R.color.teal_700)
-            } else {
-                paintview.brush.color = ContextCompat.getColor(this, R.color.teal_200)
+            when(val text = parent.getItemAtPosition(position).toString()){
+                "white" -> { paintview.setColor(text) }
+                "Cyan" -> { paintview.setColor(text) }
+                "black" -> { paintview.setColor(text) }
             }
         } else if (parent?.id == R.id.Brush_Spinner) {
-            val text = parent.getItemAtPosition(position).toString()
-            if (text == "10") {
-                paintview.brush.strokeWidth = 10f
-            } else if (text == "15") {
-                paintview.brush.strokeWidth = 15f
-            } else {
-                paintview.brush.strokeWidth = 20f
+            when(val text = parent.getItemAtPosition(position).toString()){
+                "10" -> { paintview.setBrushSize(10f) }
+                "15" -> { paintview.setBrushSize(15f) }
+                "20" -> { paintview.setBrushSize(20f) }
             }
         }
     }
-
     override fun onNothingSelected(parent: AdapterView<*>?) {
-
     }
 }
 
-class Paintview(context: Context?) : View(context) {
-
-    val brush = Paint()
+class Painter(context: Context?) : View(context) {
+    var brush = Paint()
     var path = Path()
+    var canvasPaint = Paint()
+    var canvas = Canvas()
+    var paintColor = 0xFF660000
+    var canvasBitmap: Bitmap? = null
+    var brushsize = 10f
 
     init {
-        brush.isAntiAlias = true
-        brush.color = ContextCompat.getColor(context!!, R.color.white)
-        brush.style = Paint.Style.STROKE
-        brush.strokeJoin = Paint.Join.ROUND
-        brush.strokeWidth = 10f
+       setupDrawing()
+    }
+    fun setBrushSize(newSize: Float) {
+        invalidate()
+        brush.strokeWidth = newSize
+    }
+    fun setColor(newColor: String?) {
+        invalidate()
+        paintColor = Color.parseColor(newColor).toLong()
+        brush.color = paintColor.toInt()
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-
-        val pointX = event!!.x
-        val pointY = event.y
-
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        canvasBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        canvas = Canvas(canvasBitmap!!)
+    }
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val touchX = event.x
+        val touchY = event.y
         when (event.action) {
-
-            MotionEvent.ACTION_DOWN -> {
-                path.moveTo(pointX, pointY)
-                postInvalidate()
-                return true
+            MotionEvent.ACTION_DOWN -> path.moveTo(touchX, touchY)
+            MotionEvent.ACTION_MOVE -> path.lineTo(touchX, touchY)
+            MotionEvent.ACTION_UP -> {
+                canvas.drawPath(path, brush)
+                path.reset()
             }
-            MotionEvent.ACTION_MOVE -> {
-                path.lineTo(pointX, pointY)
-                postInvalidate()
-                return true
-            }
+            else -> return false
         }
-        postInvalidate()
-        return false
+        invalidate()
+        return true
     }
 
     override fun onDraw(canvas: Canvas?) {
+        canvas?.drawBitmap(canvasBitmap!!, 0f, 0f, canvasPaint)
         canvas?.drawPath(path, brush)
     }
+
+    private fun setupDrawing() {
+        path = Path()
+        brush = Paint()
+        brush.color = paintColor.toInt()
+        brush.isAntiAlias = true
+        brush.strokeWidth = 5f
+        brush.style = Paint.Style.STROKE
+        brush.strokeJoin = Paint.Join.ROUND
+        brush.strokeCap = Paint.Cap.ROUND
+        canvasPaint = Paint(Paint.DITHER_FLAG)
+        brush.strokeWidth = brushsize
+    }
+    fun startNew() {
+        canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+        invalidate()
+    }
+
 }
